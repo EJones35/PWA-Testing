@@ -14,7 +14,18 @@ function renderTasks() {
     tasks.forEach((task, index) => {
         const li = document.createElement("li");
 
-        // text element (click to complete)
+        // CHECKBOX
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = task.done;
+
+        checkbox.onchange = () => {
+            tasks[index].done = checkbox.checked;
+            saveTasks();
+            renderTasks();
+        };
+
+        // TEXT
         const text = document.createElement("span");
         text.textContent = task.text;
 
@@ -23,13 +34,7 @@ function renderTasks() {
             text.style.opacity = "0.6";
         }
 
-        text.onclick = () => {
-            tasks[index].done = !tasks[index].done;
-            saveTasks();
-            renderTasks();
-        };
-
-        // edit button
+        // EDIT
         const editBtn = document.createElement("button");
         editBtn.textContent = "Edit";
         editBtn.onclick = () => {
@@ -41,7 +46,7 @@ function renderTasks() {
             }
         };
 
-        // delete button
+        // DELETE
         const deleteBtn = document.createElement("button");
         deleteBtn.textContent = "Delete";
         deleteBtn.onclick = () => {
@@ -50,6 +55,7 @@ function renderTasks() {
             renderTasks();
         };
 
+        li.appendChild(checkbox);
         li.appendChild(text);
         li.appendChild(editBtn);
         li.appendChild(deleteBtn);
