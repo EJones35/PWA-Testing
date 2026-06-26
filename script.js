@@ -14,22 +14,34 @@ function renderTasks() {
     tasks.forEach((task, index) => {
         const li = document.createElement("li");
 
+        // text element (click to complete)
         const text = document.createElement("span");
-        text.textContent = task;
+        text.textContent = task.text;
 
-        // EDIT button
+        if (task.done) {
+            text.style.textDecoration = "line-through";
+            text.style.opacity = "0.6";
+        }
+
+        text.onclick = () => {
+            tasks[index].done = !tasks[index].done;
+            saveTasks();
+            renderTasks();
+        };
+
+        // edit button
         const editBtn = document.createElement("button");
         editBtn.textContent = "Edit";
         editBtn.onclick = () => {
-            const newTask = prompt("Edit task:", task);
+            const newTask = prompt("Edit task:", task.text);
             if (newTask && newTask.trim() !== "") {
-                tasks[index] = newTask.trim();
+                tasks[index].text = newTask.trim();
                 saveTasks();
                 renderTasks();
             }
         };
 
-        // DELETE button
+        // delete button
         const deleteBtn = document.createElement("button");
         deleteBtn.textContent = "Delete";
         deleteBtn.onclick = () => {
@@ -49,12 +61,15 @@ function renderTasks() {
 button.addEventListener("click", () => {
     if (input.value.trim() === "") return;
 
-    tasks.push(input.value.trim());
+    tasks.push({
+        text: input.value.trim(),
+        done: false
+    });
+
     input.value = "";
 
     saveTasks();
     renderTasks();
 });
 
-// initial load
 renderTasks();
