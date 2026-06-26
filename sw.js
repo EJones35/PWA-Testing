@@ -1,4 +1,4 @@
-const CACHE = "offline-v1.1";
+const CACHE = "offline-v1.2";
 
 const FILES = [
     "/",
