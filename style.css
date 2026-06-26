@@ -10,6 +10,10 @@ input {
     padding: 10px;
 }
 
+span {
+    cursor: pointer;
+}
+
 li {
     display: flex;
     gap: 10px;
