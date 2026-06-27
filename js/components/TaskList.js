@@ -149,7 +149,7 @@ function setupDragDrop(containerEl) {
 
   containerEl.addEventListener('dragstart', (e) => {
     const item = findTaskItem(e.target)
-    if (!item || !e.target.closest('.drag-handle')) {
+    if (!item || isInteractive(e.target)) {
       e.preventDefault()
       return
     }
@@ -197,7 +197,9 @@ function setupDragDrop(containerEl) {
       dragSrcId = item.dataset.id
       item.classList.add('dragging')
       item.style.transition = 'none'
-    }, 300)
+      containerEl.style.userSelect = 'none'
+      containerEl.style.webkitUserSelect = 'none'
+    }, 250)
   }, { passive: true })
 
   containerEl.addEventListener('touchmove', (e) => {
@@ -243,6 +245,9 @@ function setupDragDrop(containerEl) {
     clearTimeout(longPressTimer)
     longPressTimer = null
 
+    containerEl.style.userSelect = ''
+    containerEl.style.webkitUserSelect = ''
+
     if (isDragging && touchDragEl) {
       touchDragEl.classList.remove('dragging')
       touchDragEl.style.opacity = ''
@@ -261,6 +266,9 @@ function setupDragDrop(containerEl) {
   containerEl.addEventListener('touchcancel', () => {
     clearTimeout(longPressTimer)
     longPressTimer = null
+
+    containerEl.style.userSelect = ''
+    containerEl.style.webkitUserSelect = ''
 
     if (touchDragEl) {
       touchDragEl.classList.remove('dragging')

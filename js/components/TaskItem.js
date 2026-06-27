@@ -20,7 +20,6 @@ export function createTaskElement(task) {
       </div>
     </div>
     <div class="task-actions">
-      <button class="icon-btn drag-handle" title="Drag to reorder">⠿</button>
       <button class="icon-btn edit-btn" title="Edit">✏️</button>
       <button class="icon-btn archive-btn" title="${task.archived ? 'Restore' : 'Archive'}">${task.archived ? '📦' : '🗄️'}</button>
       <button class="icon-btn delete-btn" title="Delete">🗑️</button>

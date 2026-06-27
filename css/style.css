@@ -405,6 +405,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  -webkit-touch-callout: none;
 }
 
 .task-item {
@@ -425,18 +426,6 @@ body {
 .task-item:hover {
   border-color: var(--primary);
   box-shadow: var(--shadow-lg);
-}
-
-.drag-handle {
-  cursor: grab;
-  touch-action: none;
-  color: var(--text-tertiary);
-  font-size: 1.125rem !important;
-  letter-spacing: 2px;
-}
-
-.drag-handle:active {
-  cursor: grabbing;
 }
 
 @keyframes fadeIn {
