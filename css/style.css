@@ -453,8 +453,13 @@ body {
 }
 
 .task-item.dragging {
-  opacity: 0.5;
+  opacity: 0.85;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  transform: scale(1.02);
   border-style: dashed;
+  border-color: var(--primary);
+  z-index: 10;
+  position: relative;
 }
 
 .task-item.completed .task-text {

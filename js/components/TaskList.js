@@ -124,6 +124,8 @@ function setupDragDrop(containerEl) {
   let touchDragEl = null
   let touchStartY = 0
   let touchStarted = false
+  let longPressTimer = null
+  let isDragging = false
 
   function persistOrder() {
     if (!dragSrcId) return
@@ -139,6 +141,10 @@ function setupDragDrop(containerEl) {
 
   function findTaskItem(el) {
     return el.closest('.task-item')
+  }
+
+  function isInteractive(el) {
+    return !!el.closest('.task-checkbox, .task-actions, .edit-group')
   }
 
   containerEl.addEventListener('dragstart', (e) => {
@@ -174,36 +180,46 @@ function setupDragDrop(containerEl) {
   let touchId = null
 
   containerEl.addEventListener('touchstart', (e) => {
-    const handle = e.target.closest('.drag-handle')
-    if (!handle) return
+    if (isInteractive(e.target)) return
     if (e.touches.length > 1) return
 
     const item = findTaskItem(e.target)
     if (!item) return
 
     touchDragEl = item
-    dragSrcId = item.dataset.id
     touchStartY = e.touches[0].clientY
     touchStarted = false
+    isDragging = false
     touchId = e.touches[0].identifier
 
-    const rect = item.getBoundingClientRect()
-    item.style.transition = 'none'
+    longPressTimer = setTimeout(() => {
+      isDragging = true
+      dragSrcId = item.dataset.id
+      item.classList.add('dragging')
+      item.style.transition = 'none'
+    }, 300)
   }, { passive: true })
 
   containerEl.addEventListener('touchmove', (e) => {
-    if (!touchDragEl || !dragSrcId) return
+    if (!touchDragEl) return
 
     const touch = Array.from(e.touches).find(t => t.identifier === touchId)
     if (!touch) return
 
-    if (!touchStarted && Math.abs(touch.clientY - touchStartY) < 10) return
-    touchStarted = true
+    const dy = Math.abs(touch.clientY - touchStartY)
+
+    if (!isDragging) {
+      if (dy > 10) {
+        clearTimeout(longPressTimer)
+        longPressTimer = null
+        touchDragEl = null
+        touchId = null
+      }
+      return
+    }
 
     e.preventDefault()
-
-    touchDragEl.style.opacity = '0.5'
-    touchDragEl.style.borderStyle = 'dashed'
+    touchStarted = true
 
     const touchX = touch.clientX
     const touchY = touch.clientY
@@ -223,33 +239,40 @@ function setupDragDrop(containerEl) {
     }
   }, { passive: false })
 
-  containerEl.addEventListener('touchend', (e) => {
-    if (!touchDragEl || !dragSrcId) {
-      touchDragEl = null
-      touchStarted = false
-      touchId = null
-      return
+  containerEl.addEventListener('touchend', () => {
+    clearTimeout(longPressTimer)
+    longPressTimer = null
+
+    if (isDragging && touchDragEl) {
+      touchDragEl.classList.remove('dragging')
+      touchDragEl.style.opacity = ''
+      touchDragEl.style.borderStyle = ''
+      touchDragEl.style.transition = ''
+      persistOrder()
     }
 
-    touchDragEl.style.opacity = ''
-    touchDragEl.style.borderStyle = ''
-    touchDragEl.style.transition = ''
-
     touchDragEl = null
+    isDragging = false
     touchStarted = false
+    dragSrcId = null
     touchId = null
-    persistOrder()
   })
 
   containerEl.addEventListener('touchcancel', () => {
+    clearTimeout(longPressTimer)
+    longPressTimer = null
+
     if (touchDragEl) {
+      touchDragEl.classList.remove('dragging')
       touchDragEl.style.opacity = ''
       touchDragEl.style.borderStyle = ''
       touchDragEl.style.transition = ''
     }
+
     touchDragEl = null
-    dragSrcId = null
+    isDragging = false
     touchStarted = false
+    dragSrcId = null
     touchId = null
   })
 }
