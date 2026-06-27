@@ -14,7 +14,19 @@ li {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-top: 10px;
+
+    list-style: none;
+    padding: 8px 0;
+}
+
+li input[type="checkbox"] {
+    margin: 0;
+    width: 20px;
+    height: 20px;
+}
+
+li span {
+    flex: 1;
 }
 
 span {
