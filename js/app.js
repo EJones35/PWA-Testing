@@ -93,51 +93,30 @@ async function registerSW() {
 
   try {
     const reg = await navigator.serviceWorker.register('./sw.js')
-    console.log('Service Worker registered')
+
+    let refreshing = false
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return
+      refreshing = true
+      window.location.reload()
+    })
 
     if (reg.waiting) {
-      showUpdatePrompt(reg)
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' })
+      return
     }
 
     reg.addEventListener('updatefound', () => {
       const newSW = reg.installing
       newSW.addEventListener('statechange', () => {
         if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
-          showUpdatePrompt(reg)
+          newSW.postMessage({ type: 'SKIP_WAITING' })
         }
       })
     })
   } catch (err) {
     console.error('Service Worker registration failed:', err)
   }
-}
-
-function showUpdatePrompt(reg) {
-  const banner = document.getElementById('updateBanner')
-  if (!banner) return
-
-  banner.classList.remove('hidden')
-
-  const updateBtn = document.getElementById('updateBtn')
-  const dismissBtn = document.getElementById('dismissBtn')
-
-  updateBtn.addEventListener('click', () => {
-    if (reg.waiting) {
-      reg.waiting.postMessage({ type: 'SKIP_WAITING' })
-    }
-    banner.classList.add('hidden')
-  })
-
-  dismissBtn.addEventListener('click', () => {
-    banner.classList.add('hidden')
-  })
-
-  let refreshing = false
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (refreshing) return
-    refreshing = true
-    window.location.reload()
-  })
 }
 
 document.addEventListener('DOMContentLoaded', init)

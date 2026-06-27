@@ -24,7 +24,6 @@ self.addEventListener('install', (event) => {
       } catch (err) {
         console.error('Failed to cache some assets:', err)
       }
-      await self.skipWaiting()
     })()
   )
 })
