@@ -11,6 +11,13 @@
   <meta name="description" content="A lightweight, offline-first task manager PWA">
   <meta name="application-name" content="Offline Tasks">
   <meta name="mobile-web-app-capable" content="yes">
+  <script>
+    (function() {
+      var theme = localStorage.getItem('offline-tasks-theme');
+      if (!theme) theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="192x192.png">
   <link rel="icon" href="192x192.png" type="image/png">
