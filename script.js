@@ -8,74 +8,87 @@ function saveTasks() {
     localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-function renderTasks() {
-    list.innerHTML = "";
+function createTask(task, completed = false) {
+    const li = document.createElement("li");
 
-    tasks.forEach((task, index) => {
-        const li = document.createElement("li");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = completed;
 
-        // CHECKBOX
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = task.done;
+    const text = document.createElement("span");
+    text.textContent = task;
 
-        checkbox.onchange = () => {
-            tasks[index].done = checkbox.checked;
-            saveTasks();
-            renderTasks();
-        };
+    if (completed) {
+        text.style.textDecoration = "line-through";
+        text.style.opacity = "0.6";
+    }
 
-        // TEXT
-        const text = document.createElement("span");
-        text.textContent = task.text;
-
-        if (task.done) {
+    checkbox.addEventListener("change", () => {
+        if (checkbox.checked) {
             text.style.textDecoration = "line-through";
             text.style.opacity = "0.6";
+        } else {
+            text.style.textDecoration = "none";
+            text.style.opacity = "1";
         }
 
-        // EDIT
-        const editBtn = document.createElement("button");
-        editBtn.textContent = "Edit";
-        editBtn.onclick = () => {
-            const newTask = prompt("Edit task:", task.text);
-            if (newTask && newTask.trim() !== "") {
-                tasks[index].text = newTask.trim();
-                saveTasks();
-                renderTasks();
-            }
-        };
-
-        // DELETE
-        const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "Delete";
-        deleteBtn.onclick = () => {
-            tasks.splice(index, 1);
+        const index = tasks.findIndex(t => t.task === task);
+        if (index !== -1) {
+            tasks[index].completed = checkbox.checked;
             saveTasks();
-            renderTasks();
-        };
-
-        li.appendChild(checkbox);
-        li.appendChild(text);
-        li.appendChild(editBtn);
-        li.appendChild(deleteBtn);
-
-        list.appendChild(li);
+        }
     });
+
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "🗑️";
+
+    deleteButton.addEventListener("click", () => {
+        li.remove();
+
+        tasks = tasks.filter(t => !(t.task === task && t.completed === checkbox.checked));
+        saveTasks();
+    });
+
+    li.appendChild(checkbox);
+    li.appendChild(text);
+    li.appendChild(deleteButton);
+
+    list.appendChild(li);
 }
 
 button.addEventListener("click", () => {
-    if (input.value.trim() === "") return;
+    const task = input.value.trim();
+
+    if (task === "") return;
 
     tasks.push({
-        text: input.value.trim(),
-        done: false
+        task: task,
+        completed: false
     });
 
-    input.value = "";
-
     saveTasks();
-    renderTasks();
+    createTask(task);
+
+    input.value = "";
+    input.focus();
 });
 
-renderTasks();
+input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        button.click();
+    }
+});
+
+// Load saved tasks
+tasks.forEach(task => {
+    createTask(task.task, task.completed);
+});
+
+// Register Service Worker
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js")
+            .then(() => console.log("Service Worker registered"))
+            .catch(err => console.error("Service Worker registration failed:", err));
+    });
+}
