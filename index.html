@@ -1,21 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline Tasks</title>
-    <link rel="stylesheet" href="style.css" rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1a2e" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tasks">
+  <meta name="description" content="A lightweight, offline-first task manager PWA">
+  <meta name="application-name" content="Offline Tasks">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="192x192.png">
+  <link rel="icon" href="192x192.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <title>Offline Tasks</title>
 </head>
-
 <body>
-    <h1>Offline Tasks v1.3</h1>
-    <input id="taskInput" placeholder="Enter a task">
-    <button id="addButton">
-        Add
-    </button>
-    <ul id="taskList"></ul>
-    <script src="script.js"></script>
-</body>
+  <div id="updateBanner" class="update-banner hidden">
+    <span>A new version is available.</span>
+    <div>
+      <button id="updateBtn" class="primary-btn">Update</button>
+      <button id="dismissBtn" class="secondary-btn">Dismiss</button>
+    </div>
+  </div>
 
+  <header class="app-header">
+    <div class="header-top">
+      <h1 class="app-title">Tasks</h1>
+      <div class="header-actions">
+        <button id="installBtn" class="icon-btn hidden" title="Install App">📲</button>
+        <button id="themeToggle" class="icon-btn theme-toggle" title="Toggle theme">🌙</button>
+      </div>
+    </div>
+    <p class="app-subtitle">Offline task manager</p>
+  </header>
+
+  <main class="app-main">
+    <div class="add-task-card">
+      <div class="add-task-row">
+        <input type="text" id="taskInput" placeholder="What needs to be done?" autofocus>
+        <button id="addButton" class="primary-btn">Add</button>
+      </div>
+      <div class="add-task-options">
+        <select id="prioritySelect">
+          <option value="low">🟢 Low</option>
+          <option value="medium" selected>🟡 Medium</option>
+          <option value="high">🔴 High</option>
+        </select>
+        <input type="date" id="dueDateInput" title="Due date">
+        <input type="text" id="categoryInput" placeholder="Categories (comma-separated)" title="Categories">
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="filter-group">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="active">Active</button>
+        <button class="filter-btn" data-filter="completed">Done</button>
+        <button class="filter-btn" data-filter="archived">Archived</button>
+      </div>
+      <div class="sort-controls">
+        <span class="task-count">0 tasks</span>
+        <select id="sortSelect">
+          <option value="createdAt">Newest</option>
+          <option value="priority">Priority</option>
+          <option value="dueDate">Due date</option>
+          <option value="text">Name</option>
+        </select>
+        <button id="sortOrderBtn" class="icon-btn" title="Toggle order">↓</button>
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <input type="search" id="searchInput" placeholder="Search tasks...">
+    </div>
+
+    <ul id="taskList" class="task-list"></ul>
+  </main>
+
+  <footer class="app-footer">
+    <p>All data stored locally on this device.</p>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
 </html>
