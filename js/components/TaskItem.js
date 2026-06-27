@@ -20,7 +20,9 @@ export function createTaskElement(task) {
       </div>
     </div>
     <div class="task-actions">
+      <button class="icon-btn drag-handle" title="Drag to reorder">⠿</button>
       <button class="icon-btn edit-btn" title="Edit">✏️</button>
+      <button class="icon-btn archive-btn" title="${task.archived ? 'Restore' : 'Archive'}">${task.archived ? '📦' : '🗄️'}</button>
       <button class="icon-btn delete-btn" title="Delete">🗑️</button>
     </div>
   `
@@ -29,6 +31,7 @@ export function createTaskElement(task) {
   const taskText = li.querySelector('.task-text')
   const editBtn = li.querySelector('.edit-btn')
   const deleteBtn = li.querySelector('.delete-btn')
+  const archiveBtn = li.querySelector('.archive-btn')
 
   checkbox.addEventListener('change', async () => {
     const completed = checkbox.checked
@@ -45,13 +48,20 @@ export function createTaskElement(task) {
     }, 250)
   })
 
+  archiveBtn.addEventListener('click', async () => {
+    li.classList.add('removing')
+    setTimeout(async () => {
+      await updateTask(task.id, { archived: !task.archived })
+      await refreshTasks()
+    }, 250)
+  })
+
   editBtn.addEventListener('click', () => {
     startEditing(li, task, taskText)
   })
 
   li.addEventListener('dragstart', (e) => {
     e.dataTransfer.setData('text/plain', task.id)
-    li.classList.add('dragging')
   })
 
   li.addEventListener('dragend', () => {

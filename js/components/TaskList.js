@@ -38,11 +38,13 @@ async function render(containerEl) {
     prevOrder = task.order
   }
 
-  if (tasks.length > 0) {
+  const currentFilter = getState().filter
+  if (tasks.length > 0 && currentFilter !== 'archived') {
     const bulkEl = document.createElement('li')
     bulkEl.className = 'bulk-actions'
+    const completedCount = tasks.filter(t => t.completed).length
     bulkEl.innerHTML = `
-      <span>${tasks.filter(t => t.completed).length} completed</span>
+      <span>${completedCount} completed</span>
       <div>
         <button class="secondary-btn archive-btn">Archive completed</button>
         <button class="secondary-btn danger-btn delete-completed-btn">Delete completed</button>
@@ -66,12 +68,14 @@ async function render(containerEl) {
         setState({ tasks: all })
       })
     }, 0)
+  }
 
-    const sortControls = document.querySelector('.sort-controls')
-    const count = tasks.filter(t => !t.completed).length
-    if (sortControls) {
-      sortControls.querySelector('.task-count').textContent = `${count} task${count !== 1 ? 's' : ''}`
-    }
+  const sortControls = document.querySelector('.sort-controls')
+  const activeCount = getState().filter === 'archived'
+    ? tasks.length
+    : tasks.filter(t => !t.completed).length
+  if (sortControls) {
+    sortControls.querySelector('.task-count').textContent = `${activeCount}${getState().filter === 'archived' ? '' : ' active'} task${activeCount !== 1 ? 's' : ''}`
   }
 
   containerEl.appendChild(fragment)
@@ -117,38 +121,135 @@ function setupControls() {
 
 function setupDragDrop(containerEl) {
   let dragSrcId = null
+  let touchDragEl = null
+  let touchStartY = 0
+  let touchStarted = false
+
+  function persistOrder() {
+    if (!dragSrcId) return
+    const items = containerEl.querySelectorAll('.task-item')
+    const ids = Array.from(items).map(el => Number(el.dataset.id))
+    updateTaskOrder(ids).then(() => {
+      return getAllTasks()
+    }).then(all => {
+      setState({ tasks: all })
+    })
+    dragSrcId = null
+  }
+
+  function findTaskItem(el) {
+    return el.closest('.task-item')
+  }
 
   containerEl.addEventListener('dragstart', (e) => {
-    dragSrcId = e.target.closest('.task-item')?.dataset.id
+    const item = findTaskItem(e.target)
+    if (!item || !e.target.closest('.drag-handle')) {
+      e.preventDefault()
+      return
+    }
+    dragSrcId = item.dataset.id
+    item.classList.add('dragging')
   })
 
   containerEl.addEventListener('dragover', (e) => {
     e.preventDefault()
-    const target = e.target.closest('.task-item')
+    const target = findTaskItem(e.target)
     if (target && target.dataset.id !== dragSrcId) {
       const rect = target.getBoundingClientRect()
       const mid = rect.top + rect.height / 2
+      const dragged = document.querySelector(`[data-id="${dragSrcId}"]`)
       if (e.clientY < mid) {
-        containerEl.insertBefore(
-          document.querySelector(`[data-id="${dragSrcId}"]`),
-          target
-        )
+        containerEl.insertBefore(dragged, target)
       } else {
-        containerEl.insertBefore(
-          document.querySelector(`[data-id="${dragSrcId}"]`),
-          target.nextSibling
-        )
+        containerEl.insertBefore(dragged, target.nextSibling)
       }
     }
   })
 
   containerEl.addEventListener('dragend', async () => {
-    if (!dragSrcId) return
-    const items = containerEl.querySelectorAll('.task-item')
-    const ids = Array.from(items).map(el => Number(el.dataset.id))
-    await updateTaskOrder(ids)
-    const all = await getAllTasks()
-    setState({ tasks: all })
+    document.querySelectorAll('.task-item').forEach(el => el.classList.remove('dragging'))
+    persistOrder()
+  })
+
+  let touchId = null
+
+  containerEl.addEventListener('touchstart', (e) => {
+    const handle = e.target.closest('.drag-handle')
+    if (!handle) return
+    if (e.touches.length > 1) return
+
+    const item = findTaskItem(e.target)
+    if (!item) return
+
+    touchDragEl = item
+    dragSrcId = item.dataset.id
+    touchStartY = e.touches[0].clientY
+    touchStarted = false
+    touchId = e.touches[0].identifier
+
+    const rect = item.getBoundingClientRect()
+    item.style.transition = 'none'
+  }, { passive: true })
+
+  containerEl.addEventListener('touchmove', (e) => {
+    if (!touchDragEl || !dragSrcId) return
+
+    const touch = Array.from(e.touches).find(t => t.identifier === touchId)
+    if (!touch) return
+
+    if (!touchStarted && Math.abs(touch.clientY - touchStartY) < 10) return
+    touchStarted = true
+
+    e.preventDefault()
+
+    touchDragEl.style.opacity = '0.5'
+    touchDragEl.style.borderStyle = 'dashed'
+
+    const touchX = touch.clientX
+    const touchY = touch.clientY
+
+    const target = document.elementFromPoint(touchX, touchY)
+    const targetItem = findTaskItem(target)
+
+    if (targetItem && targetItem.dataset.id !== dragSrcId) {
+      const rect = targetItem.getBoundingClientRect()
+      const mid = rect.top + rect.height / 2
+
+      if (touchY < mid) {
+        containerEl.insertBefore(touchDragEl, targetItem)
+      } else {
+        containerEl.insertBefore(touchDragEl, targetItem.nextSibling)
+      }
+    }
+  }, { passive: false })
+
+  containerEl.addEventListener('touchend', (e) => {
+    if (!touchDragEl || !dragSrcId) {
+      touchDragEl = null
+      touchStarted = false
+      touchId = null
+      return
+    }
+
+    touchDragEl.style.opacity = ''
+    touchDragEl.style.borderStyle = ''
+    touchDragEl.style.transition = ''
+
+    touchDragEl = null
+    touchStarted = false
+    touchId = null
+    persistOrder()
+  })
+
+  containerEl.addEventListener('touchcancel', () => {
+    if (touchDragEl) {
+      touchDragEl.style.opacity = ''
+      touchDragEl.style.borderStyle = ''
+      touchDragEl.style.transition = ''
+    }
+    touchDragEl = null
     dragSrcId = null
+    touchStarted = false
+    touchId = null
   })
 }

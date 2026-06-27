@@ -427,7 +427,15 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
-.task-item:active {
+.drag-handle {
+  cursor: grab;
+  touch-action: none;
+  color: var(--text-tertiary);
+  font-size: 1.125rem !important;
+  letter-spacing: 2px;
+}
+
+.drag-handle:active {
   cursor: grabbing;
 }
 
@@ -521,13 +529,8 @@ body {
   display: flex;
   gap: 2px;
   flex-shrink: 0;
-  opacity: 0;
-  transition: opacity var(--transition);
-}
-
-.task-item:hover .task-actions,
-.task-item:focus-within .task-actions {
   opacity: 1;
+  transition: opacity var(--transition);
 }
 
 .task-actions .icon-btn {
@@ -688,10 +691,6 @@ body {
 
   .sort-controls {
     justify-content: space-between;
-  }
-
-  .task-actions {
-    opacity: 1;
   }
 
   .bulk-actions {
